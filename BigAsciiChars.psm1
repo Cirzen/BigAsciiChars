@@ -139,6 +139,11 @@ $Codes = @{
 }
 
 function GetLetterRow {
+    <#
+    .Synopsis
+    Helper function to get
+    #>
+    
     param(
         # The char to return
         [Parameter(Mandatory)]
@@ -152,7 +157,11 @@ function GetLetterRow {
 
         # The Dictionary to use as the lookup for character data
         [System.Collections.IDictionary]
-        $Dictionary = $Codes
+        $Dictionary = $Codes,
+
+        #The character to use as the output. Defaults to the hash sign '#'
+        [char]
+        $OutChar = '#'
     )
     Begin{
 
@@ -180,7 +189,7 @@ function GetLetterRow {
             {
                 If (($5Bits -band 1) -eq 1)
                 {
-                    $OutChars[$i] = "#"
+                    $OutChars[$i] = $OutChar
                 }
                 --$i
                 $5Bits = $5Bits -shr 1
@@ -194,6 +203,10 @@ function GetLetterRow {
 }
 
 function GetLetterColumn {
+    <#
+        .Synopsis
+        Helper function to get the column values for a character as an array of bytes
+    #>
     [CmdletBinding()]
     param(
         # The character to process. 
@@ -204,12 +217,11 @@ function GetLetterColumn {
         [System.Collections.IDictionary]
         $Dictionary = $Codes
     )
-    Begin{
+    Begin {
 
     }
-    Process{
-        ForEach ($char in $Character)
-        {
+    Process {
+        ForEach ($char in $Character) {
             if (!$Dictionary.Contains([int]$Char))
             {
                 $Code = 150250799
@@ -231,13 +243,14 @@ function GetLetterColumn {
             
             Write-Debug "ColumnMask: $ColumnMask"
 
+            # The amount to bump the bits to the right so that the first value is in the 2^0 position
             $NormalisingShift = $Width - 1
-            for ($i = 0; $i -lt $Width; $i++) # Loop for each column
-            {
+            for ($i = 0; $i -lt $Width; $i++) { # Loop for each column
+                
                 $Normalised = ($Code -band $ColumnMask) -shr $NormalisingShift
                 [byte]$ColVal = 0
-                for ($j = 0; $j -lt 5; $j++) #Extraction Loop
-                {
+                
+                for ($j = 0; $j -lt 5; $j++) { #Extraction Loop
                     # Todo: change to while Normalised -gt 0
                     $ColVal += ($Normalised -shr (4 * $j)) -band (1 -shl $j)
                 }
@@ -287,19 +300,17 @@ function New-ShiftRegister ([int]$Width, [byte[]]$Array) {
     [void]$List.AddRange([byte[]]::new($Width))
     $TotalCount = $List.Count
     
-    while ($TotalCount -ge 0)
+    while ($true)
     {
         ,@($Queue.GetEnumerator())
         [void]$Queue.Dequeue()
         $Queue.Enqueue($List[0])
-        
         try {
             [void]$List.RemoveAt(0)
         }
         catch {
             break
         }
-        $TotalCount = $List.Count
     }
     
 }
@@ -314,17 +325,35 @@ function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5) {
     $BoolArray
 }
 function Write-ScrollText {
+    <#
+    .SYNOPSIS
+        Simulates an LED scrolling display
+    .DESCRIPTION
+        Long description
+    .EXAMPLE
+        PS C:\> <example usage>
+        Explanation of what the example does
+    .INPUTS
+        Inputs (if any)
+    .OUTPUTS
+        Output (if any)
+    .NOTES
+        General notes
+    #>
     [CmdletBinding()]
     Param(
+        # The text to scroll across the display
         [string]$Text,
         
+        # The width of the display. The average width of a character is approx 5 columns, so a width of 100 will display approx 20 characters at once
         [int]$Width,
         
+        # The number of milliseconds to pause between updating the display. Large displays will take longer to render, meaning the same delay will not result in the same speed for different widths.
         [int]$FrameDelay = 200
     )
     Begin{
         #$OnOff = @([char]9675,[char]9679)  # Order is actually (Off, On) so you can supply a bool to the index
-        $OnOff = @(" ","#")
+        $OnOff = @(" ", [char]9679)
         $Height = 5
     }
     Process{
@@ -335,6 +364,7 @@ function Write-ScrollText {
         ForEach ($tick in (New-ShiftRegister -Width $Width -Array $TextBytes))
         {
             Write-Verbose "tick = $($tick -join ';')"
+            Write-Host ("-" * $Width)
             for ($i = 0; $i -lt $Width; $i++)
             {
                 $Display[$i] = (ConvertByteToBoolArray -Byte $tick[$i] -Bits $Height)
@@ -350,10 +380,9 @@ function Write-ScrollText {
                 {
                     [void]$sb.Append($OnOff[($Display[$w][$h] -as [int])])
                 }
-                $sb.ToString()
+                $sb.ToString() | Out-Host
             }
             Start-Sleep -Milliseconds $FrameDelay
-            Write-Host ("-" * $Width)
         }
 
     }
