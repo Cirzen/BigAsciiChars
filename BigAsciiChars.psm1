@@ -278,7 +278,7 @@ function Get-BigText {
     for ($i = 0; $i -le 4; $i++)
     {
         [void]$RowSB.Clear()
-        foreach ($char in $Text.ToUpper().ToCharArray())
+        foreach ($char in $Text.ToCharArray())
         {
             [void]$RowSB.Append((GetLetterRow -Char $char -Row $i))
             [void]$RowSB.Append(" " * $CharacterSeparation)
