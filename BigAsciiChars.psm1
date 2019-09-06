@@ -37,6 +37,8 @@ This can be viewed on a grid as:
  When a width is less than 5, the most significant bits for each row are zero filled.
  That is, the character is shifted to the right of the 5x5 grid
 
+TODO: Change the $Codes hashtable to a class of "ASCIIFont" or similar.
+
 #>
 $Codes = @{
     32 = 2 -shl 25   # Space width : can be between 1 and 5.
@@ -141,7 +143,7 @@ $Codes = @{
 function GetLetterRow {
     <#
     .Synopsis
-    Helper function to get
+    Helper function to get the row of bits for a given character
     #>
     
     param(
@@ -202,7 +204,8 @@ function GetLetterRow {
 
 }
 
-function GetLetterColumn {
+function GetLetterColumn
+{
     <#
         .Synopsis
         Helper function to get the column values for a character as an array of bytes
@@ -210,23 +213,27 @@ function GetLetterColumn {
     [CmdletBinding()]
     param(
         # The character to process. 
-        [Parameter(Mandatory, ValueFromPipeline)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [char]$Character,
 
         # The Dictionary to use as the lookup for character data
         [System.Collections.IDictionary]
         $Dictionary = $Codes
     )
-    Begin {
-
+    Begin
+    {
+        $CharHeight = 5
     }
-    Process {
-        ForEach ($char in $Character) {
+    Process
+    {
+        ForEach ($char in $Character)
+        {
             if (!$Dictionary.Contains([int]$Char))
             {
                 $Code = 150250799
             }
-            else{
+            else
+            {
                 $Code = $Dictionary[[int]$Char]
             }
             $Width = ($Code -band (7 -shl 25)) -shr 25
@@ -245,12 +252,16 @@ function GetLetterColumn {
 
             # The amount to bump the bits to the right so that the first value is in the 2^0 position
             $NormalisingShift = $Width - 1
-            for ($i = 0; $i -lt $Width; $i++) { # Loop for each column
+            # Loop for each column
+            for ($i = 0; $i -lt $Width; $i++)
+            { 
                 
                 $Normalised = ($Code -band $ColumnMask) -shr $NormalisingShift
                 [byte]$ColVal = 0
                 
-                for ($j = 0; $j -lt 5; $j++) { #Extraction Loop
+                for ($j = 0; $j -lt $CharHeight; $j++)
+                {
+                    #Extraction Loop
                     # Todo: change to while Normalised -gt 0
                     $ColVal += ($Normalised -shr (4 * $j)) -band (1 -shl $j)
                 }
@@ -261,19 +272,21 @@ function GetLetterColumn {
                 --$NormalisingShift
                 
             }
-            # Insert a seperator line after each character
+            # Insert a single separator column after each character
             [byte]0
         }
     }
 }
-function Get-BigText {
-    param(
+function Get-BigText
+{
+    param
+    (
         [string]$Text,
         [int]$CharacterSeparation = 1
     )
 
     $TextArray = New-Object string[] 5
-    $RowSB = [System.Text.StringBuilder]::new(4* $Text.Length, 5 * $Text.Length)
+    $RowSB = [System.Text.StringBuilder]::new(4 * $Text.Length)
 
     for ($i = 0; $i -le 4; $i++)
     {
@@ -290,31 +303,46 @@ function Get-BigText {
     $TextArray
 }
 
-function New-ShiftRegister ([int]$Width, [byte[]]$Array) {
+<#
+.SYNOPSIS
+Helper function to generate a Queue object to act as a shift register
+
+.PARAMETER Width
+The width of the register / queue
+
+.PARAMETER Array
+The array of bytes to feed into the register
+#>
+
+function NewShiftRegister ([int]$Width, [byte[]]$Array)
+{
     
     # Initialise the Queue and fill with zeroes
-    $Queue = New-Object 'System.Collections.Generic.Queue[byte]' -ArgumentList (,[byte[]]::new($Width))
+    $Queue = New-Object 'System.Collections.Generic.Queue[byte]' -ArgumentList (, [byte[]]::new($Width))
 
     # Build a list from the Array and pad the end with zeroes
+    # This enables the text to finish scrolling off the end of the display when done.
     $List = [System.Collections.Generic.List[byte]]::new($Array)
     [void]$List.AddRange([byte[]]::new($Width))
-    $TotalCount = $List.Count
     
     while ($true)
     {
-        ,@($Queue.GetEnumerator())
+        , @($Queue.GetEnumerator())
         [void]$Queue.Dequeue()
         $Queue.Enqueue($List[0])
-        try {
+        try
+        {
             [void]$List.RemoveAt(0)
         }
-        catch {
+        catch
+        {
             break
         }
     }
     
 }
-function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5) {
+function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5)
+{
     $BoolArray = [bool[]]::new($Bits)
     $StartBit = 1 -shl ($Bits - 1)
     for ($i = 0; $i -lt $Bits; $i++)
@@ -324,7 +352,9 @@ function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5) {
     }
     $BoolArray
 }
-function Write-ScrollText {
+
+function Write-ScrollText
+{
     <#
     .SYNOPSIS
         Simulates an LED scrolling display
@@ -334,36 +364,76 @@ function Write-ScrollText {
         PS C:\> <example usage>
         Explanation of what the example does
     .INPUTS
-        Inputs (if any)
+        A string to display
     .OUTPUTS
-        Output (if any)
+        To console only
     .NOTES
         General notes
     #>
     [CmdletBinding()]
     Param(
         # The text to scroll across the display
-        [string]$Text,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string]
+        $Text,
         
         # The width of the display. The average width of a character is approx 5 columns, so a width of 100 will display approx 20 characters at once
-        [int]$Width,
+        [Parameter(Mandatory = $false)]
+        [int]
+        $Width = [math]::floor([Console]::BufferWidth / 3),
         
-        # The number of milliseconds to pause between updating the display. Large displays will take longer to render, meaning the same delay will not result in the same speed for different widths.
-        [int]$FrameDelay = 200
+        # The number of milliseconds to target between display updates
+        [Parameter(Mandatory = $false)]
+        [Alias("interval")]
+        [int]
+        $FrameDelay = 50,
+
+        # Clears the console before starting to write the scroll display
+        [switch]
+        [Alias("cls")]
+        $ClearScreen,
+        
+        #  The height of the scroll display. Should be left as default.
+        [Parameter(Mandatory = $false)]
+        [int]
+        $Height = 5
+
     )
-    Begin{
+    Begin
+    {
         #$OnOff = @([char]9675,[char]9679)  # Order is actually (Off, On) so you can supply a bool to the index
         $OnOff = @(" ", [char]9679)
-        $Height = 5
+        $CursorVisibility = [Console]::CursorVisible
+        [Console]::CursorVisible = $false
+
+        # Attempt to make sure there is enough room in the console buffer to display the scroller in place.
+        # If there isn't, the window will scroll with all outputs. To avoid this, use clear-screen beforehand
+        $BufH = [Console]::BufferHeight
+        if ($BufH - [System.Console]::CursorTop -lt $Height)
+        {
+            [Console]::BufferHeight = [Math]::Min([short]::MaxValue, $BufH + 10)
+        }
+
+        $Top = [math]::Min([Console]::BufferHeight - 1, [Console]::CursorTop + 1)
+
+        if ($ClearScreen)
+        {
+            Clear-Host
+        }
     }
-    Process{
+    Process
+    {
         # Set up rectangular array for our 'display'
         $Display = [bool[][]]::new($Width, $Height)
-        $TextBytes = ($Text.ToUpper().ToCharArray()|GetLetterColumn) -as [byte[]]
+        $TextBytes = ($Text.ToCharArray() | GetLetterColumn) -as [byte[]]
 
-        ForEach ($tick in (New-ShiftRegister -Width $Width -Array $TextBytes))
+        $Timer = [System.Diagnostics.Stopwatch]::StartNew()
+
+        ForEach ($tick in (NewShiftRegister -Width $Width -Array $TextBytes))
         {
-            Write-Verbose "tick = $($tick -join ';')"
+            $Timer.Restart()
+            [Console]::SetCursorPosition(0, $top)
+            Write-Debug "tick = $($tick -join ';')"
             Write-Host ("-" * $Width)
             for ($i = 0; $i -lt $Width; $i++)
             {
@@ -382,9 +452,14 @@ function Write-ScrollText {
                 }
                 $sb.ToString() | Out-Host
             }
-            Start-Sleep -Milliseconds $FrameDelay
+            Write-Host ("-" * $Width)
+            Start-Sleep -Milliseconds ([math]::Max(0, $FrameDelay - $Timer.Elapsed.TotalMilliseconds))
         }
 
+    }
+    End
+    {
+        [Console]::CursorVisible = $CursorVisibility
     }
 }
 
