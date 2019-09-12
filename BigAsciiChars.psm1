@@ -1,10 +1,12 @@
 <#
 
-###   #### #####      ####   #   ### ##### ####  #   # #####
-#     #      #        #   #  #  #      #   #      # #    #
-# ### ###    #   ###  ####   #  # ###  #   ###     #     #
-#  #  #      #        #   #  #  #  #   #   #      # #    #
-####  #####  #        ####   #  ####   #   ##### #   #   #
+####  #  ###    ###   ###   ### # #   ### #  #  ###  ###   ###
+#   # # #      #   # #     #    # #  #    #  # #   # #  # #
+####  # # ###  #####  ###  #    # #  #    #### ##### ###   ###
+#   # # #  #   #   #     # #    # #  #    #  # #   # # #      #
+####  # ####   #   #  ###   ### # #   ### #  # #   # #  #  ###
+
+
 
  Codes are formed as per the following:
  4 most significant bits: ignored, set to 0
@@ -37,78 +39,80 @@ This can be viewed on a grid as:
  When a width is less than 5, the most significant bits for each row are zero filled.
  That is, the character is shifted to the right of the 5x5 grid
 
-TODO: Change the $Codes hashtable to a class of "ASCIIFont" or similar.
+TODO: Incorporate the $Codes hashtable into a class derived from "ASCIIFont" or similar.
+This will enable multiple fonts all sharing a base class. Char width can be calculated automatically,
+allowing 8x8 fonts to take up all bits of an int64
 
 #>
 $Codes = @{
-    32 = 2 -shl 25   # Space width : can be between 1 and 5.
-    33 = 34636801    # "!"
-    34 = 106070016   # """
-    35 = 179284970   # "#"
-    36 = 184170686   # "$"
-    37 = 194842995   # "%"
-    38 = 180957773   # "&"
-    39 = 68222976    # "'"
-    40 = 68225089    # "("
-    41 = 69239842    # ")"
-    42 = 185750673   # "*"
-    43 = 172129412   # "+"
-    44 = 67108898    # ","
-    45 = 100670464   # "-"
-    46 = 67108963    # "."
-    47 = 168890640   # "/"
-    48 = 140813606   # "0"
-    49 = 107022407   # "1"
-    50 = 140806287   # "2"
-    51 = 183015982   # "3"
-    52 = 142949442   # "4"
-    53 = 150222894   # "5"
-    54 = 141834534   # "6"
-    55 = 150016264   # "7"
-    56 = 140810534   # "8"
-    57 = 140811302   # "9"
-    58 = 33587201    # ":"
-    59 = 67141666    # ";"
-    60 = 101781569   # "<"
-    61 = 100892896   # "="
-    62 = 104924228   # ">"
-    63 = 140806276   # "?"
-    64 = 200007183   # "@"
-    65 = 183041585   # "A"
-    66 = 199817790   # "B"
-    67 = 141828359   # "C"
-    68 = 199804478   # "D"
-    69 = 199782943   # "E"
-    70 = 150221064   # "F"
-    71 = 183000670   # "G"
-    72 = 143965481   # "H"
-    73 = 34636833    # "I"
-    74 = 175180366   # "J"
-    75 = 143995209   # "K"
-    76 = 142876943   # "L"
-    77 = 196794033   # "M"
-    78 = 186439281   # "N"
-    79 = 183027246   # "O"
-    80 = 150256904   # "P"
-    81 = 200853443   # "Q"
-    82 = 149207369   # "R"
-    83 = 182990894   # "S"
-    84 = 200413316   # "T"
-    85 = 143959343   # "U"
-    86 = 186172740   # "V"
-    87 = 186177194   # "W"
-    88 = 185930065   # "X"
-    89 = 185929860   # "Y"
-    90 = 200347935   # "Z"
-    91 = 70322243    # "["
-    92 = 184815681   # "\"
-    93 = 70288419    # "]"
-    94 = 102924288   # "^"
-    95 = 134217743   # "_"
-    96 = 69238784    # "`"
-    97 = 199278127   # "a"
-    98 = 185550398   # "b"
-    99 = 183026222   # "c"
+    32  = 2 -shl 25   # Space width : can be between 1 and 5.
+    33  = 34636801    # "!"
+    34  = 106070016   # """
+    35  = 179284970   # "#"
+    36  = 184170686   # "$"
+    37  = 194842995   # "%"
+    38  = 180957773   # "&"
+    39  = 68222976    # "'"
+    40  = 68225089    # "("
+    41  = 69239842    # ")"
+    42  = 185750673   # "*"
+    43  = 172129412   # "+"
+    44  = 67108898    # ","
+    45  = 100670464   # "-"
+    46  = 67108963    # "."
+    47  = 168890640   # "/"
+    48  = 140813606   # "0"
+    49  = 107022407   # "1"
+    50  = 140806287   # "2"
+    51  = 183015982   # "3"
+    52  = 142949442   # "4"
+    53  = 150222894   # "5"
+    54  = 141834534   # "6"
+    55  = 150016264   # "7"
+    56  = 140810534   # "8"
+    57  = 140811302   # "9"
+    58  = 33587201    # ":"
+    59  = 67141666    # ";"
+    60  = 101781569   # "<"
+    61  = 100892896   # "="
+    62  = 104924228   # ">"
+    63  = 140806276   # "?"
+    64  = 200007183   # "@"
+    65  = 183041585   # "A"
+    66  = 199817790   # "B"
+    67  = 141828359   # "C"
+    68  = 199804478   # "D"
+    69  = 199782943   # "E"
+    70  = 150221064   # "F"
+    71  = 183000670   # "G"
+    72  = 143965481   # "H"
+    73  = 34636833    # "I"
+    74  = 175180366   # "J"
+    75  = 143995209   # "K"
+    76  = 142876943   # "L"
+    77  = 196794033   # "M"
+    78  = 186439281   # "N"
+    79  = 183027246   # "O"
+    80  = 150256904   # "P"
+    81  = 200853443   # "Q"
+    82  = 149207369   # "R"
+    83  = 182990894   # "S"
+    84  = 200413316   # "T"
+    85  = 143959343   # "U"
+    86  = 186172740   # "V"
+    87  = 186177194   # "W"
+    88  = 185930065   # "X"
+    89  = 185929860   # "Y"
+    90  = 200347935   # "Z"
+    91  = 70322243    # "["
+    92  = 184815681   # "\"
+    93  = 70288419    # "]"
+    94  = 102924288   # "^"
+    95  = 134217743   # "_"
+    96  = 69238784    # "`"
+    97  = 199278127   # "a"
+    98  = 185550398   # "b"
+    99  = 183026222   # "c"
     100 = 169330223  # "d"
     101 = 183041551  # "e"
     102 = 184054288  # "f"
@@ -140,7 +144,8 @@ $Codes = @{
     128 = 150223247  # "€"
 }
 
-function GetLetterRow {
+function GetLetterRow
+{
     <#
     .Synopsis
     Helper function to get the row of bits for a given character
@@ -153,7 +158,7 @@ function GetLetterRow {
 
         # The row number to get, starting from the top (0-indexed)
         [Parameter(Mandatory)]
-        [ValidateRange(0,4)]
+        [ValidateRange(0, 4)]
         [int[]]
         $Row,
 
@@ -163,17 +168,27 @@ function GetLetterRow {
 
         #The character to use as the output. Defaults to the hash sign '#'
         [char]
-        $OutChar = '#'
+        $OutChar = '#',
+        
+        # The character to use as the background. Defaults to an empty space
+        [char]
+        $EmptyChar = ' ',
+
+        [switch]
+        $AsByte
     )
-    Begin{
+    Begin
+    {
 
     }
-    Process{
+    Process
+    {
         if (!$Dictionary.Contains([int]$Char))
         {
             $Code = 150250799
         }
-        else{
+        else
+        {
             $Code = $Dictionary[[int]$Char]
         }
         
@@ -183,10 +198,15 @@ function GetLetterRow {
         
         ForEach ($r in $row)
         {
-            $OutChars = "     ".ToCharArray()
+            $OutChars = [string]::new($EmptyChar, $Width).ToCharArray()
             # Shift the bits for the required row to the least significant position and zero the remaining bits
             $5Bits = ($Code -shr (20 - 5 * $r)) -band 31
-            $i = 4
+            if ($AsByte)
+            {
+                $5Bits
+                continue;
+            }
+            $i = $OutChars.GetUpperBound(0)
             While ($5Bits -gt 0)
             {
                 If (($5Bits -band 1) -eq 1)
@@ -197,8 +217,7 @@ function GetLetterRow {
                 $5Bits = $5Bits -shr 1
             }
 
-            $OutString = -join $OutChars
-            $OutString.Substring(5-$Width,$Width)
+            -join $OutChars
         }
     }
 
@@ -240,6 +259,7 @@ function GetLetterColumn
 
             # integer where all the 'a' bits (left column of character) are 1
             # We then shift this right to access the other columns
+            # 0000 0001 0000 1000 0100 0010 0001 0000
             $ColumnMask = 17318416
 
             # Shift the mask to the first column as specified by the width value:
@@ -353,6 +373,94 @@ function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5)
     $BoolArray
 }
 
+# Two functions to get the Most and Leasr significant bits of an input number
+# The idea being that you could bitwise or all the rows of a character and use the difference 
+# between the MSB and LSB to automatically calculate the character width
+function GetLSB ($d, [switch]$Position)
+{
+    # Ensure $d is a number:
+    try
+    {
+        [void]$d / 0
+    }
+    catch [System.DivideByZeroException]
+    {
+        # Ensure it's an integer
+        if (($d -band -1) -ne $d)
+        {
+            throw [System.ArgumentException]::new("Argument was not an integer")
+        }
+        
+        if ($d -eq 0) { return 0 }
+
+        $OneLess = $d - 1 # What if equal to MinValue ?
+        $PowerOfTwo = ($OneLess -bor $d) -bxor $OneLess
+
+        if ($Position)
+        {
+            return [System.Math]::Log($PowerOfTwo, 2) + 1
+        }
+        return $PowerOfTwo
+
+    }
+    catch
+    {
+        throw [System.ArgumentException]::new("Argument was not a number")
+    }
+}
+
+function GetMSB ($d, [switch]$Position)
+{
+    try
+    {
+        [void]$d / 0
+    }
+    catch [System.DivideByZeroException]
+    {
+        if (($d -band -1) -ne $d)
+        {
+            throw [System.ArgumentException]::new("Argument was not an integer")
+        }
+        if ($d -eq 0) { return 0 }
+        $BitSize = [System.Runtime.InteropServices.Marshal]::SizeOf(($d)) * 8
+        for ($i = $BitSize - 1 ; $i -ge 0 ; --$i)
+        {
+            if ($d -band (1 -shl $i))
+            {
+                if ($Position)
+                {
+                    return $i
+                }
+                return [math]::Pow(2, $i)
+            }
+        }
+
+    }
+    catch
+    {
+        throw [System.ArgumentException]::new("Argument was not a number")
+    }
+}
+
+function GetCharWidth
+{
+    param(
+        [char]$Char,
+        [System.Collections.IDictionary]
+        $Dictionary = $Codes,
+
+        [int]$RowCount = 4
+    )
+
+    # This makes the assumption that the characters are aligned to the right
+    $byte = 0
+    GetLetterRow -Char $Char -Dictionary $Dictionary -AsByte -Row (0..$RowCount) | ForEach-Object {
+        $byte = $byte -bor $_
+    }
+
+    return 1 + (GetMSB -d $byte -Position)
+}
+
 function Write-ScrollText
 {
     <#
@@ -423,43 +531,51 @@ function Write-ScrollText
     }
     Process
     {
-        # Set up rectangular array for our 'display'
-        $Display = [bool[][]]::new($Width, $Height)
-        $TextBytes = ($Text.ToCharArray() | GetLetterColumn) -as [byte[]]
-
-        $Timer = [System.Diagnostics.Stopwatch]::StartNew()
-
-        ForEach ($tick in (NewShiftRegister -Width $Width -Array $TextBytes))
+        try
         {
-            $Timer.Restart()
-            [Console]::SetCursorPosition(0, $top)
-            Write-Debug "tick = $($tick -join ';')"
-            Write-Host ("-" * $Width)
-            for ($i = 0; $i -lt $Width; $i++)
-            {
-                $Display[$i] = (ConvertByteToBoolArray -Byte $tick[$i] -Bits $Height)
-                Write-Debug ($Display[$i] -join ';')
-            }
+            # Set up rectangular array for our 'display'
+            $Display = [bool[][]]::new($Width, $Height)
+            $TextBytes = ($Text.ToCharArray() | GetLetterColumn) -as [byte[]]
 
-            $sb = [System.Text.StringBuilder]::new($Width)
-            
-            for ($h = 0; $h -lt $Height; $h++)
+            $Timer = [System.Diagnostics.Stopwatch]::StartNew()
+
+            ForEach ($tick in (NewShiftRegister -Width $Width -Array $TextBytes))
             {
-                [void]$sb.Clear()
-                for ($w = 0; $w -lt $Width; $w++)
+                $Timer.Restart()
+                [Console]::SetCursorPosition(0, $top)
+                Write-Debug "tick = $($tick -join ';')"
+                Write-Host ("-" * $Width)
+                for ($i = 0; $i -lt $Width; $i++)
                 {
-                    [void]$sb.Append($OnOff[($Display[$w][$h] -as [int])])
+                    $Display[$i] = (ConvertByteToBoolArray -Byte $tick[$i] -Bits $Height)
+                    Write-Debug ($Display[$i] -join ';')
                 }
-                $sb.ToString() | Out-Host
-            }
-            Write-Host ("-" * $Width)
-            Start-Sleep -Milliseconds ([math]::Max(0, $FrameDelay - $Timer.Elapsed.TotalMilliseconds))
+
+                $sb = [System.Text.StringBuilder]::new($Width)
+            
+                for ($h = 0; $h -lt $Height; $h++)
+                {
+                    [void]$sb.Clear()
+                    for ($w = 0; $w -lt $Width; $w++)
+                    {
+                        [void]$sb.Append($OnOff[($Display[$w][$h] -as [int])])
+                    }
+                    $sb.ToString() | Out-Host
+                }
+                Write-Host ("-" * $Width)
+                Start-Sleep -Milliseconds ([math]::Max(0, $FrameDelay - $Timer.Elapsed.TotalMilliseconds))
+            }   
         }
+        finally
+        {
+            # Force cursor re-visibility even if we Ctrl-C out of the loop
+            [Console]::CursorVisible = $CursorVisibility
+        }
+        
 
     }
     End
     {
-        [Console]::CursorVisible = $CursorVisibility
     }
 }
 
