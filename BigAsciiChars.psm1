@@ -1,10 +1,11 @@
 <#
 
-###   #### #####      ####   #   ### ##### ####  #   # #####
-#     #      #        #   #  #  #      #   #      # #    #
-# ### ###    #   ###  ####   #  # ###  #   ###     #     #
-#  #  #      #        #   #  #  #  #   #   #      # #    #
-####  #####  #        ####   #  ####   #   ##### #   #   #
+####  #  ###   ###   ####  ###  # #  ### #     ####  # ##   ####
+#   #   #   # #   # #     #   #     #    ####      # ##  # #
+####  #  #### #####  ###  #     # # #    #   #  #### #      ###
+#   # #     # #   #     # #   # # # #    #   # #   # #         #
+####  # ####  #   # ####   ###  # #  ### #   #  #### #     ####
+
 
  Codes are formed as per the following:
  4 most significant bits: ignored, set to 0
@@ -37,7 +38,9 @@ This can be viewed on a grid as:
  When a width is less than 5, the most significant bits for each row are zero filled.
  That is, the character is shifted to the right of the 5x5 grid
 
-TODO: Change the $Codes hashtable to a class of "ASCIIFont" or similar.
+TODO: Incorporate the $Codes hashtable into a class derived from "ASCIIFont" or similar.
+This will enable multiple fonts all sharing a base class. Char width can be calculated automatically,
+allowing 8x8 fonts to take up all bits of an int64
 
 #>
 $Codes = @{
