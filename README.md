@@ -6,7 +6,7 @@ BigAsciiChars is a module that displays a given string as if it were on 5 x 5 gr
 
 ## Installing
 
-_This instructions will only work once this is uploaded to the PowerShell Gallery ;)_
+_These instructions will only work once this is uploaded to the PowerShell Gallery ;)_
 
 ```powershell
 Install-Module -Name BigAsciiChars -Scope CurrentUser
