@@ -15,7 +15,7 @@ Install-Module -Name BigAsciiChars -Scope CurrentUser
 ## Examples
 
 ```powershell
-Get-BigText -Text 'This module is so cool!'
+Write-BigText -Text 'This module is so cool!'
 ```
 
 _Insert image of result and more example_
