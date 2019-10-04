@@ -1,4 +1,5 @@
 <img src="Media/abc.png" align="right" />
+<img src = "https://img.shields.io/github/hacktoberfest/2019/cirzen/BigAsciiChars" align="left" /><br>
 
 # BigAsciiChars
 
