@@ -1,4 +1,4 @@
-<img src="Media/abc.png" align="right" />
+<img src="Media/BigAscii_Logo50.png" align="right" /><br>
 <img src = "https://img.shields.io/github/hacktoberfest/2019/cirzen/BigAsciiChars" align="left" /><br>
 
 # BigAsciiChars
@@ -36,4 +36,3 @@ This project is licensed under the GNU General Public License - see the [LICENSE
 ## Acknowledgments
 
 * _Add Acknowledgements_
-* Icon from [Freepik](https://www.flaticon.com/authors/freepik) on [flaticon.com](https://www.flaticon.com/free-icon/letters-abc-in-pixelated-form_32764)
