@@ -295,7 +295,7 @@ function GetLetterColumn
         }
     }
 }
-function Get-BigText
+function Write-BigText
 {
     param
     (
