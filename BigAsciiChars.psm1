@@ -295,12 +295,31 @@ function GetLetterColumn
         }
     }
 }
+
 function Write-BigText
 {
     param
     (
-        [string]$Text,
-        [int]$CharacterSeparation = 1
+        # The text to write
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [string]
+        $Text,
+
+        [Parameter(Mandatory = $false)]
+        [int]
+        $CharacterSeparation = 1,
+
+        [Parameter(Mandatory = $false)]
+        [char]
+        $OutChar = "#",
+
+        [Parameter(Mandatory = $false)]
+        [char]
+        $EmptyChar = " ",
+
+        [System.Collections.IDictionary]
+        $Dictionary = $Codes
+
     )
 
     $TextArray = New-Object string[] 5
@@ -311,8 +330,8 @@ function Write-BigText
         [void]$RowSB.Clear()
         foreach ($char in $Text.ToCharArray())
         {
-            [void]$RowSB.Append((GetLetterRow -Char $char -Row $i))
-            [void]$RowSB.Append(" " * $CharacterSeparation)
+            [void]$RowSB.Append((GetLetterRow -Char $char -Row $i -OutChar $OutChar -EmptyChar $EmptyChar -Dictionary $Dictionary))
+            [void]$RowSB.Append($EmptyChar, $CharacterSeparation)
         }
 
         $TextArray[$i] = $RowSB.ToString().TrimEnd()
@@ -321,6 +340,36 @@ function Write-BigText
     $TextArray
 }
 
+
+function Write-SpinText
+{
+    param(
+        [string]
+        $Text,
+
+        [int]
+        $LoopCount = 1,
+
+        [int]
+        $FrameDelay = 100
+    )
+
+    begin
+    {
+        $SpinArray = "!/—\¡—\".ToCharArray()
+        Clear-Host
+    }
+    end
+    {
+        for ($i = 0; $i -lt ($SpinArray.Length * $LoopCount); $i++)
+        {
+            [System.Console]::SetCursorPosition(0,0)
+            $OutChar = ($SpinArray[$i % $SpinArray.Length])
+            Write-BigText -Text $Text -OutChar $OutChar
+            Start-Sleep -Milliseconds $FrameDelay
+        }
+    }
+}
 
 function NewShiftRegister ([int]$Width, [byte[]]$Array)
 {
