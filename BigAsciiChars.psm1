@@ -257,7 +257,7 @@ function GetLetterColumn
             }
             $Width = ($Code -band (7 -shl 25)) -shr 25
 
-            # integer where all the 'a' bits (left column of character) are 1
+            # Mask where all the 'a' bits (left column of character) are 1
             # We then shift this right to access the other columns
             # 0000 0001 0000 1000 0100 0010 0001 0000
             $ColumnMask = 17318416
@@ -275,14 +275,12 @@ function GetLetterColumn
             # Loop for each column
             for ($i = 0; $i -lt $Width; $i++)
             { 
-                
                 $Normalised = ($Code -band $ColumnMask) -shr $NormalisingShift
                 [byte]$ColVal = 0
                 
+                #Extraction Loop
                 for ($j = 0; $j -lt $CharHeight; $j++)
                 {
-                    #Extraction Loop
-                    # Todo: change to while Normalised -gt 0
                     $ColVal += ($Normalised -shr (4 * $j)) -band (1 -shl $j)
                 }
 
@@ -373,20 +371,18 @@ function Write-SpinText
     }
 }
 
-<#
-.SYNOPSIS
-Helper function to generate a Queue object to act as a shift register
-
-.PARAMETER Width
-The width of the register / queue
-
-.PARAMETER Array
-The array of bytes to feed into the register
-#>
-
 function NewShiftRegister ([int]$Width, [byte[]]$Array)
 {
-    
+<#
+    .SYNOPSIS
+    Helper function to generate a Queue object to act as a shift register
+
+    .PARAMETER Width
+    The width of the register / queue
+
+    .PARAMETER Array
+    The array of bytes to feed into the register
+#>
     # Initialise the Queue and fill with zeroes
     $Queue = New-Object 'System.Collections.Generic.Queue[byte]' -ArgumentList (, [byte[]]::new($Width))
 
@@ -593,10 +589,11 @@ function Write-ScrollText
             {
                 $Timer.Restart()
                 [Console]::SetCursorPosition(0, $top)
-                Write-Debug "tick = $($tick -join ';')"
+                
                 Write-Host ("-" * $Width)
                 for ($i = 0; $i -lt $Width; $i++)
                 {
+                    # Convert each column byte to booleans
                     $Display[$i] = (ConvertByteToBoolArray -Byte $tick[$i] -Bits $Height)
                     Write-Debug ($Display[$i] -join ';')
                 }
