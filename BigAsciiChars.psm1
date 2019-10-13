@@ -401,14 +401,14 @@ function GetLetterRow
                 continue;
             }
             $i = $OutChars.GetUpperBound(0)
-            While ($5Bits -gt 0)
+            While ($RowBits -gt 0)
             {
-                If (($5Bits -band 1) -eq 1)
+                If (($RowBits -band 1) -eq 1)
                 {
                     $OutChars[$i] = $OutChar
                 }
                 --$i
-                $5Bits = $5Bits -shr 1
+                $RowBits = $RowBits -shr 1
             }
 
             -join $OutChars
