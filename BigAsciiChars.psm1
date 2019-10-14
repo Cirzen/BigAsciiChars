@@ -1,3 +1,4 @@
+using namespace System.Collections.Generic
 <#
 
 ####  #  ###    ###   ###   ### # #   ### #  #  ###  ###   ###
@@ -150,10 +151,10 @@ class CharInfo
     [int64]$Value
     [int]$Width
 
-    CharInfo([int64]$value, [bool]$SkipWidthCalc = $false)
+    CharInfo([int64]$value)
     {
         $this.Value = $value
-        $this.Width = if ($SkipWidthCalc) {0} else {GetCharWidth} #Update
+        $this.Width = 0
     }
     CharInfo([int64]$value, [int]$width)
     {
@@ -166,19 +167,28 @@ class CharInfo
 # Base class for any derived fonts
 class FontBase
 {
-    [System.Collections.Generic.Dictionary[int,CharInfo]]$Codes
+    [Dictionary[int, CharInfo]]$Codes
     [int]$Width
     [int]$Height
 
-    FontBase([hashtable]$codes, [int]$width, [int]$height)
+    FontBase()
     {
-        $this.Codes      = [System.Collections.Generic.Dictionary[int,CharInfo]]::new()
+        if ($this.GetType() -eq ([FontBase]))
+        {
+            throw [System.InvalidOperationException]::new("Abstract class cannot be instantiated")
+        }
+    }
+    
+    [Dictionary[int, CharInfo]]Build([hashtable]$codes)
+    {
+        $Dictionary = [Dictionary[int, CharInfo]]::new()
         foreach ($key in $codes.Keys)
         {
-            $this.Codes.Add($key, [CharInfo]::new($codes[$key], $true))
+            $Dictionary.Add($key, [CharInfo]::new($codes[$key]))
+            #TODO: Add width calculator here
         }
-        $this.CharWidth  = $width
-        $this.CharHeight = $height
+
+        return $Dictionary
     }
 
     [bool]IsCharSupported([char]$c)
@@ -217,6 +227,7 @@ class FontBase
     {
         return ColumnMaskCalc($this.Height, $this.Width)
     }
+    
     static [int64]ColumnMaskCalc([int]$height, [int]$width)
     {
         [int64]$out = 0
@@ -236,9 +247,9 @@ class DefaultFont : FontBase
 {
     DefaultFont()
     {
-        $this.CharHeight = 5
-        $this.CharWidth = 5
-        $this.Codes = @{
+        $this.Height = 5
+        $this.Width = 5
+        $FontHashTable = @{
             32  = 2 -shl 25   # Space width : can be between 1 and 5.
             33  = 34636801    # "!"
             34  = 106070016   # """
@@ -337,6 +348,7 @@ class DefaultFont : FontBase
             127 = 150250799  # "" Used as the "unknown character" symbol
             128 = 150223247  # "€"
         }
+        $this.Codes = $this.Build($FontHashTable)
     }
 }
 
