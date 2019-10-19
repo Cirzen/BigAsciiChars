@@ -85,8 +85,18 @@ class FontBase
         $Dictionary = [Dictionary[int, CharInfo]]::new()
         foreach ($key in $codes.Keys)
         {
-            $CharWidth = GetCharWidth -Code ($codes[$key]) -FontHeight $this.Height -FontWidth $this.Width
-            $Dictionary.Add($key, [CharInfo]::new($codes[$key], $CharWidth ))
+            if ($key -eq 32)
+            {
+                # The space character is handled differently to every other. As the value needs to be zero,
+                # the value is used as the width instead
+                $CharWidth = $codes[$key]
+                $Dictionary.Add($key, [CharInfo]::new(0, $CharWidth ))
+            }
+            else
+            {
+                $CharWidth = GetCharWidth -Code ($codes[$key]) -FontHeight $this.Height -FontWidth $this.Width
+                $Dictionary.Add($key, [CharInfo]::new($codes[$key], $CharWidth ))
+            }
         }
 
         return $Dictionary
@@ -151,7 +161,7 @@ class DefaultFont : FontBase
         $this.Height = 5
         $this.Width = 5
         $FontHashTable = @{
-            32  = 2 -shl 25   # Space width : can be between 1 and 5.
+            32  = 2           # Space width : can be between 1 and 5.
             33  = 34636801    # "!"
             34  = 106070016   # """
             35  = 179284970   # "#"
@@ -767,7 +777,68 @@ function Write-ScrollText
     }
 }
 
-function Get-DefaultFont
+
+function Get-BADefaultFont
 {
+    <#
+    .SYNOPSIS
+    Wrapper function to return a DefaultFont object
+    
+    .DESCRIPTION
+    Calls the parameter-less constructor on the [DefaultFont] class
+    
+    .EXAMPLE
+    $Font = Get-DefaultFont
+    
+    .NOTES
+    
+    #>
+    
     return [DefaultFont]::new()
+}
+
+
+function Get-BAAvailableFont
+{
+    <#
+    .SYNOPSIS
+    Lists the available fonts installed with the module
+    
+    .EXAMPLE
+    Get-AvailableFont
+    
+    .NOTES
+    Reles on the ability to get the "ImplementingAssembly" attribute from the [psmoduleinfo]. Using Get-Module with $PSScriptRoot feels a fragile way of doing this. Open to improved suggestions
+    #>
+    (Get-Module).Where({([IO.FileInfo]$_.Path).Directory.FullName -eq $PSScriptRoot}).ImplementingAssembly.GetTypes().Where({$_.IsPublic -And $_.BaseType.Name -eq "FontBase"}).Name
+}
+
+
+function New-BAFont
+{
+    <#
+    .SYNOPSIS
+    Create a new instance of an available Ascii Font
+    
+    .DESCRIPTION
+    Long description
+    
+    .PARAMETER Name
+    Parameter description
+    
+    .EXAMPLE
+    $Font = New-Font -Name "DefaultFont"
+    
+    .NOTES
+    General notes
+    #>
+    [CmdletBinding()]
+    param(
+        [ArgumentCompleter({Get-AvailableFont})]
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Name
+    )
+
+    New-Object -TypeName $Name
 }

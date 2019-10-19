@@ -55,18 +55,21 @@ InModuleScope -ModuleName BigAsciiChars -ScriptBlock {
         }
     }
     Describe '[DefaultFont]-[Constructors]' {
-        It '[DefaultFont]-[Constructor] - Parameterless should Not Throw' {
-            # -- Arrange
-            # -- Act
-            # -- Assert
-            { [DefaultFont]::New() } | Should Not Throw
-            
-        }# end of it block
+        It "Should instantiate in under 200ms" {
+            (Measure-Command {[DefaultFont]::new()}).TotalMilliseconds | Should -BeLessOrEqual 200
+        }
         
         It "Sets up default height and width" {
             $Font = [DefaultFont]::New()
             $Font.Height | Should -Be 5
             $Font.Width | Should -Be 5
+        }
+
+        It "Uses the value in the position for the space (char 32) as the literal width and zeroes the value" {
+            $Font = [DefaultFont]::New()
+            $Font.Codes[32].Value | Should -Be 0
+            $Font.Codes[32].Width | Should -BeGreaterThan 0
+            $Font.Codes[32].Width | Should -BeLessOrEqual 8
         }
     }# end of Describe block
     
