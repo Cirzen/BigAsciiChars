@@ -1,4 +1,4 @@
-using module C:\Users\davidjohnson\Documents\PowerShell\Modules\BigAsciiChars\BigAsciiChars.psm1
+using module BigAsciiChars
 
 InModuleScope -ModuleName BigAsciiChars -ScriptBlock {
 
@@ -44,18 +44,56 @@ InModuleScope -ModuleName BigAsciiChars -ScriptBlock {
 
         }# end of it block
     }# end of Describe block
-    
+
+    Describe 'FontBase-static_ColumnMaskCalc' {
+        It "returns an int64 for valid inputs" {
+            [FontBase]::ColumnMaskCalc(2,2) | Should -BeOfType ([Int64])
+        }
+        It "returns known good values for sample inputs" {
+            [FontBase]::ColumnMaskCalc(2,2) | Should -Be 10
+            [FontBase]::ColumnMaskCalc(5,5) | Should -Be 17318416
+        }
+    }
     Describe '[DefaultFont]-[Constructors]' {
         It '[DefaultFont]-[Constructor] - Parameterless should Not Throw' {
             # -- Arrange
             # -- Act
             # -- Assert
             { [DefaultFont]::New() } | Should Not Throw
-
+            
         }# end of it block
-
-
+        
+        It "Sets up default height and width" {
+            $Font = [DefaultFont]::New()
+            $Font.Height | Should -Be 5
+            $Font.Width | Should -Be 5
+        }
     }# end of Describe block
+    
+    Context "DefaultFont" {
+        BeforeAll {
+            $Font = [DefaultFont]::new()
+        }
+        Describe "[DefaultFont]-[GetCharInfo]" {
+            It "Returns a charInfo object for a known good char" {
+                $Info = $Font.GetCharInfo("a")
+                $Info | Should -BeOfType ([CharInfo])
+            }
+            It "Returns known good data for a known input char" {
+                $Info = $Font.GetCharInfo("a")
+                $Info.Value | Should -BeOfType ([Int64])
+                $Info.Value | Should -Be 199278127
+                $Info.Width | Should -BeOfType ([int])
+                $Info.Width | Should -Be 5
+            }
+            
+        }
+
+    }
+
+    
+    
+
 
 }#End InModuleScope
 

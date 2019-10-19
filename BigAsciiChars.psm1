@@ -45,105 +45,6 @@ This will enable multiple fonts all sharing a base class. Char width can be calc
 allowing 8x8 fonts to take up all bits of an int64
 
 #>
-$Codes = @{
-    32  = 2 -shl 25   # Space width : can be between 1 and 5.
-    33  = 34636801    # "!"
-    34  = 106070016   # """
-    35  = 179284970   # "#"
-    36  = 184170686   # "$"
-    37  = 194842995   # "%"
-    38  = 180957773   # "&"
-    39  = 68222976    # "'"
-    40  = 68225089    # "("
-    41  = 69239842    # ")"
-    42  = 185750673   # "*"
-    43  = 172129412   # "+"
-    44  = 67108898    # ","
-    45  = 100670464   # "-"
-    46  = 67108963    # "."
-    47  = 168890640   # "/"
-    48  = 140813606   # "0"
-    49  = 107022407   # "1"
-    50  = 140806287   # "2"
-    51  = 183015982   # "3"
-    52  = 142949442   # "4"
-    53  = 150222894   # "5"
-    54  = 141834534   # "6"
-    55  = 150016264   # "7"
-    56  = 140810534   # "8"
-    57  = 140811302   # "9"
-    58  = 33587201    # ":"
-    59  = 67141666    # ";"
-    60  = 101781569   # "<"
-    61  = 100892896   # "="
-    62  = 104924228   # ">"
-    63  = 140806276   # "?"
-    64  = 200007183   # "@"
-    65  = 183041585   # "A"
-    66  = 199817790   # "B"
-    67  = 141828359   # "C"
-    68  = 199804478   # "D"
-    69  = 199782943   # "E"
-    70  = 150221064   # "F"
-    71  = 183000670   # "G"
-    72  = 143965481   # "H"
-    73  = 34636833    # "I"
-    74  = 175180366   # "J"
-    75  = 143995209   # "K"
-    76  = 142876943   # "L"
-    77  = 196794033   # "M"
-    78  = 186439281   # "N"
-    79  = 183027246   # "O"
-    80  = 150256904   # "P"
-    81  = 200853443   # "Q"
-    82  = 149207369   # "R"
-    83  = 182990894   # "S"
-    84  = 200413316   # "T"
-    85  = 143959343   # "U"
-    86  = 186172740   # "V"
-    87  = 186177194   # "W"
-    88  = 185930065   # "X"
-    89  = 185929860   # "Y"
-    90  = 200347935   # "Z"
-    91  = 70322243    # "["
-    92  = 184815681   # "\"
-    93  = 70288419    # "]"
-    94  = 102924288   # "^"
-    95  = 134217743   # "_"
-    96  = 69238784    # "`"
-    97  = 199278127   # "a"
-    98  = 185550398   # "b"
-    99  = 183026222   # "c"
-    100 = 169330223  # "d"
-    101 = 183041551  # "e"
-    102 = 184054288  # "f"
-    103 = 183024702  # "g"
-    104 = 185550385  # "h"
-    105 = 34604065   # "i"
-    106 = 168854590  # "j"
-    107 = 186217041  # "k"
-    108 = 185090575  # "l"
-    109 = 178968245  # "m"
-    110 = 199804465  # "n"
-    111 = 183027246  # "o"
-    112 = 199804880  # "p"
-    113 = 184075745  # "q"
-    114 = 191676944  # "r"
-    115 = 184039486  # "s"
-    116 = 185483838  # "t"
-    117 = 186173037  # "u"
-    118 = 186165572  # "v"
-    119 = 190502570  # "w"
-    120 = 186169905  # "x"
-    121 = 186170430  # "y"
-    122 = 200347935  # "z"
-    123 = 103878723  # "{"
-    124 = 34636833   # "|"
-    125 = 107021382  # "}"
-    126 = 139788288  # "~"
-    127 = 150250799  # "" Used as the "unknown character" symbol
-    128 = 150223247  # "€"
-}
 
 # Represents the int64 value and width of a given character
 class CharInfo
@@ -184,8 +85,8 @@ class FontBase
         $Dictionary = [Dictionary[int, CharInfo]]::new()
         foreach ($key in $codes.Keys)
         {
-            $Dictionary.Add($key, [CharInfo]::new($codes[$key]))
-            #TODO: Add width calculator here
+            $CharWidth = GetCharWidth -Code ($codes[$key]) -FontHeight $this.Height -FontWidth $this.Width
+            $Dictionary.Add($key, [CharInfo]::new($codes[$key], $CharWidth ))
         }
 
         return $Dictionary
@@ -225,7 +126,7 @@ class FontBase
 
     [int64]GetColumnMask()
     {
-        return ColumnMaskCalc($this.Height, $this.Width)
+        return [FontBase]::ColumnMaskCalc($this.Height, $this.Width)
     }
     
     static [int64]ColumnMaskCalc([int]$height, [int]$width)
@@ -358,21 +259,22 @@ function GetLetterRow
     .Synopsis
     Helper function to get the row of bits for a given character
     #>
-    
+    [CmdletBinding(DefaultParameterSetName = "ByFont")]
     param(
         # The char to return
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $true, ParameterSetName = "ByFont")]
         [char]$Char,
 
         # The row number to get, starting from the top (0-indexed)
         [Parameter(Mandatory)]
-        [ValidateRange(0, 4)]
+        [ValidateRange(0, 7)]
         [int[]]
         $Row,
 
-        # The Dictionary to use as the lookup for character data
+        # The Font to use to determine the output
+        [Parameter(Mandatory = $true, ParameterSetName = "ByFont")]
         [FontBase]
-        $Font = [DefaultFont]::new(),
+        $Font,
 
         #The character to use as the output. Defaults to the hash sign '#'
         [char]
@@ -383,7 +285,19 @@ function GetLetterRow
         $EmptyChar = ' ',
 
         [switch]
-        $AsByte
+        $AsByte,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "ByValue")]
+        [int64]
+        $Code,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "ByValue")]
+        [int]
+        $Width,
+
+        [Parameter(Mandatory = $true, ParameterSetName = "ByValue")]
+        [int]
+        $Height
     )
     Begin
     {
@@ -391,20 +305,32 @@ function GetLetterRow
     }
     Process
     {
-        $CharInfo = $Font.GetCharInfo($Char)
+        if ($PSCmdlet.ParameterSetName -eq "ByFont")
+        {
+            $Width = $Font.Width
+            $Height = $Font.Height
+            $CharInfo = $Font.GetCharInfo($Char)
+            
+            $CharWidth = $CharInfo.Width
+            Write-Debug ($CharInfo | convertTo-Json -Compress)
+            
+            $Code = $CharInfo.Value
+        }
+        else
+        {
+            $CharWidth = $Width
+        }
         
-        $Code = $CharInfo.Value
-        $Width = $CharInfo.Width
         # The bit mask to extract a row for a font of this width
         $Mask = (1 -shl $Width) - 1
         # Represents the max shift that would be required for a font of this height and width
-        $MaxShift = ($Font.Height - 1) * $Font.Width
+        $MaxShift = ($Height - 1) * $Width
         
         ForEach ($r in $row)
         {
-            if ($r -ge $Font.Height) {continue}
+            if ($r -ge $Height) {continue}
 
-            $OutChars = [string]::new($EmptyChar, $Width).ToCharArray()
+            $OutChars = [string]::new($EmptyChar, $CharWidth).ToCharArray()
             # Shift the bits for the required row to the least significant position and zero the remaining bits
             $RowBits = ($Code -shr ($MaxShift - $Width * $r)) -band $Mask
             if ($AsByte)
@@ -413,7 +339,10 @@ function GetLetterRow
                 continue;
             }
             $i = $OutChars.GetUpperBound(0)
-            While ($RowBits -gt 0)
+            
+            # This line has the side effect of ignoring the width
+            #While ($RowBits -gt 0)
+            While ($i -ge 0)
             {
                 If (($RowBits -band 1) -eq 1)
                 {
@@ -520,20 +449,20 @@ function Write-BigText
         [char]
         $EmptyChar = " ",
 
-        [System.Collections.IDictionary]
-        $Dictionary = $Codes
+        [FontBase]
+        $Font = [DefaultFont]::new()
 
     )
 
-    $TextArray = New-Object string[] 5
-    $RowSB = [System.Text.StringBuilder]::new(4 * $Text.Length)
+    $TextArray = New-Object string[] $Font.Height
+    $RowSB = [System.Text.StringBuilder]::new($Font.Width * $Text.Length)
 
-    for ($i = 0; $i -le 4; $i++)
+    for ($i = 0; $i -lt $Font.Height; $i++)
     {
         [void]$RowSB.Clear()
         foreach ($char in $Text.ToCharArray())
         {
-            [void]$RowSB.Append((GetLetterRow -Char $char -Row $i -OutChar $OutChar -EmptyChar $EmptyChar -Dictionary $Dictionary))
+            [void]$RowSB.Append((GetLetterRow -Char $char -Row $i -OutChar $OutChar -EmptyChar $EmptyChar -Font $Font))
             [void]$RowSB.Append($EmptyChar, $CharacterSeparation)
         }
 
@@ -554,7 +483,10 @@ function Write-SpinText
         $LoopCount = 1,
 
         [int]
-        $FrameDelay = 100
+        $FrameDelay = 100,
+
+        [FontBase]
+        $Font = [DefaultFont]::new()
     )
 
     begin
@@ -694,21 +626,26 @@ function GetMSB ($d, [switch]$Position)
 function GetCharWidth
 {
     param(
-        [char]$Char,
-        [System.Collections.IDictionary]
-        $Dictionary = $Codes,
+        [int64]
+        $Code,
+        
+        [int]
+        $FontWidth,
 
-        [int]$RowCount = 4
+        [int]
+        $FontHeight
     )
 
     # This makes the assumption that the characters are aligned to the right
-    $byte = 0
-    GetLetterRow -Char $Char -Dictionary $Dictionary -AsByte -Row (0..$RowCount) | ForEach-Object {
+    [byte]$byte = 0
+    GetLetterRow -Code $Code -Width $FontWidth -Height $FontHeight -Row (0..($FontHeight - 1)) -AsByte | ForEach-Object {
         $byte = $byte -bor $_
     }
-
-    return 1 + (GetMSB -d $byte -Position)
+    $MsbPos = (GetMSB -d $byte -Position)
+    return 1 + $MsbPos
 }
+
+
 
 function Write-ScrollText
 {
@@ -750,14 +687,15 @@ function Write-ScrollText
         [Alias("cls")]
         $ClearScreen,
         
-        #  The height of the scroll display. Should be left as default.
+        #  The Font to use in the display.
         [Parameter(Mandatory = $false)]
-        [int]
-        $Height = 5
+        [FontBase]
+        $Font = [DefaultFont]::new()
 
     )
     Begin
     {
+        $Height = $Font.Height
         #$OnOff = @([char]9675,[char]9679)  # Order is actually (Off, On) so you can supply a bool to the index
         $OnOff = @(" ", [char]9679)
         $CursorVisibility = [Console]::CursorVisible
@@ -784,7 +722,7 @@ function Write-ScrollText
         {
             # Set up rectangular array for our 'display'
             $Display = [bool[][]]::new($Width, $Height)
-            $TextBytes = ($Text.ToCharArray() | GetLetterColumn) -as [byte[]]
+            $TextBytes = ($Text.ToCharArray() | GetLetterColumn -Font $Font) -as [byte[]]
 
             $Timer = [System.Diagnostics.Stopwatch]::StartNew()
 
@@ -829,3 +767,7 @@ function Write-ScrollText
     }
 }
 
+function Get-DefaultFont
+{
+    return [DefaultFont]::new()
+}

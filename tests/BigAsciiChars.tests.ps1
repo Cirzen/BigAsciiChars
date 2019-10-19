@@ -49,61 +49,102 @@ Describe "$ModuleName Manifest Testing" {
     }
 
     InModuleScope $ModuleName {
-        Context "$($ModuleName) Cmdlet testing" {
 
-            Describe "Write-BigText" {
-                
-                It "Write-BigText Should return the correct length for A" {
-                    (Write-BigText -Text "A").length | Should -Be 5
-                }
-    
-                It "Write-BigText Should throw with an empty string" {
-                    { Write-BigText -Text "" } | Should -Throw 
-                }
-    
-                It "Write-BigText Should throw with a null value" {
-                    { Write-BigText -Text $null } | Should -Throw 
-                }
+        Describe "Write-BigText" {
+            
+            It "Write-BigText Should return the correct length for A" {
+                (Write-BigText -Text "A").length | Should -Be 5
             }
 
-            Describe "GetLetterColumn" {
-                
+            It "Write-BigText Should throw with an empty string" {
+                { Write-BigText -Text "" } | Should -Throw 
+            }
+
+            It "Write-BigText Should throw with a null value" {
+                { Write-BigText -Text $null } | Should -Throw 
+            }
+        }
+
+        Describe "GetLetterColumn" {
+            
+            Context "Using default Font" {
+                BeforeAll {
+                    $Font = [DefaultFont]::new()
+                }
                 It "GetLetterColumn Should return a byte array" {
-                    (GetLetterColumn -Character "a") | Should -BeOfType ([byte[]])
+                    (GetLetterColumn -Character "a" -Font $Font).GetType().IsArray | Should -BeTrue
                 }
-    
-                It "GetLetterColumn Should return an array with 6 items" {
-                    (GetLetterColumn -Character "a").Count | Should -Be 6
+
+                It "GetLetterColumn Should return an array with 6 items with the default font" {
+                    (GetLetterColumn -Character "a" -Font $Font).Count | Should -Be 6
                 }
-    
+
                 It "GetLetterColumn Should throw if using a string" {
-                    { GetLetterColumn -Character "aa" } | Should -Throw 
-                }
-            }
-
-            Describe "GetCharWidth" {
-                
-                It "GetCharWidth Should throw if using a string" {
-                    { GetCharWidth -Char "aa" } | Should -Throw 
-                }
-    
-                It "GetCharWidth Should return an int32 value" {
-                    (GetCharWidth -Char "a") | Should -BeOfType ([int])
-                }
-    
-                It "GetCharWidth Should return 5 for the letter a" {
-                    GetCharWidth -Char "a" | Should -Be 5
-                }
-    
-                It "GetCharWidth Should return 3 for the char -" {
-                    GetCharWidth -Char "-" | Should -Be 3
-                }
-
-                It "GetCharWidth Should return 1 for the char i" {
-                    GetCharWidth -Char "i" | Should -Be 1
+                    { GetLetterColumn -Character "aa" -Font $Font } | Should -Throw 
                 }
             }
         }
+
+        Describe "GetMsb" {
+            It "Returns the bit value of the MSB without the -Position switch parameter" {
+                GetMSB -d 31 | Should -Be 16
+                GetMSB -d 32 | Should -Be 32
+                GetMSB -d 65 | Should -Be 64
+            }
+
+            It "Returns the position of the MSB with the -Position switch parameter" {
+                GetMSB -d 31 -Position | Should -Be 4
+                GetMSB -d 32 -Position | Should -Be 5
+                GetMSB -d 65 -Position | Should -Be 6
+            }
+
+        }
+
+        Describe "GetLetterRow" {
+            Context "Using default Font" {
+                BeforeAll {
+                    $Font = [DefaultFont]::new()
+                }
+            
+                It "Returns a string for a single row" {
+                    (GetLetterRow -Char "a" -Row 0 -Font $Font) | Should -BeOfType ([string])
+                }
+                It "Returns an array for multiple rows" {
+                    (GetLetterRow -Char "a" -Row (0..1) -Font $Font).GetType().IsArray | Should -BeTrue
+                }
+                It "Should throw if passed a string to the char param" {
+                    {(GetLetterRow -Char "aa" -Font $Font)} | Should -Throw
+                }
+            }
+        }
+
+        Describe "GetCharWidth" {
+            Context "Using default Font" {
+                BeforeAll {
+                    $Font = [DefaultFont]::new()
+                    $LowerCaseA = $Font.GetCharInfo("a").Value
+                    $Dash = $Font.GetCharInfo("-").Value
+                    $LowerCaseI = $Font.GetCharInfo("i").Value
+                }
+    
+                It "GetCharWidth Should return an int32 value" {
+                    (GetCharWidth -Code $LowerCaseA -FontHeight $Font.Height -FontWidth $Font.Width) | Should -BeOfType ([int])
+                }
+    
+                It "GetCharWidth Should return 5 for the letter a" {
+                    (GetCharWidth -Code $LowerCaseA -FontHeight $Font.Height -FontWidth $Font.Width) | Should -Be 5
+                }
+    
+                It "GetCharWidth Should return 3 for the char -" {
+                    (GetCharWidth -Code $Dash -FontHeight $Font.Height -FontWidth $Font.Width) | Should -Be 3
+                }
+
+                It "GetCharWidth Should return 1 for the char i" {
+                    (GetCharWidth -Code $LowerCaseI -FontHeight $Font.Height -FontWidth $Font.Width) | Should -Be 1
+                }
+            }
+        }
+        
     }
 
 
