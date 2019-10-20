@@ -350,8 +350,6 @@ function GetLetterRow
             }
             $i = $OutChars.GetUpperBound(0)
             
-            # This line has the side effect of ignoring the width
-            #While ($RowBits -gt 0)
             While ($i -ge 0)
             {
                 If (($RowBits -band 1) -eq 1)
@@ -380,7 +378,7 @@ function GetLetterColumn
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [char]$Character,
 
-        # The Dictionary to use as the lookup for character data
+        # The font to use for character data
         [FontBase]
         $Font = [DefaultFont]::new()
     )
@@ -564,7 +562,7 @@ function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5)
     $BoolArray
 }
 
-# Two functions to get the Most and Leasr significant bits of an input number
+# Two functions to get the Most and Least significant bits of an input number
 # The idea being that you could bitwise or all the rows of a character and use the difference 
 # between the MSB and LSB to automatically calculate the character width
 function GetLSB ($d, [switch]$Position)

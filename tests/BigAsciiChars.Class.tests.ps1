@@ -94,10 +94,6 @@ InModuleScope -ModuleName BigAsciiChars -ScriptBlock {
 
     }
 
-    
-    
-
-
 }#End InModuleScope
 
 
