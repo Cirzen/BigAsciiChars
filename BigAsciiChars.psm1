@@ -583,7 +583,7 @@ function GetLetterRow
 
             $OutChars = [string]::new($EmptyChar, $CharWidth).ToCharArray()
             # Shift the bits for the required row to the least significant position and zero the remaining bits
-            $RowBits = ($Code -shr ($MaxShift - $Width * $r)) -band $Mask
+            [byte]$RowBits = ($Code -shr ($MaxShift - $Width * $r)) -band $Mask
             if ($AsByte)
             {
                 $RowBits

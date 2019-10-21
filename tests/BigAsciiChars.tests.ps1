@@ -143,7 +143,13 @@ InModuleScope $ModuleName {
                 (GetLetterRow -Char "a" -Row (0..1) -Font $Font).GetType().IsArray | Should -BeTrue
             }
             It "Should throw if passed a string to the char param" {
-                {(GetLetterRow -Char "aa" -Font $Font)} | Should -Throw
+                { (GetLetterRow -Char "aa" -Font $Font) } | Should -Throw
+            }
+            It "Returns a valid byte with the -AsByte switch parameter" {
+                (GetLetterRow -Char "a" -Row 0 -Font $Font -AsByte) | Should -BeOfType ([byte])
+            }
+            It "Returns a known good value for a given input char" {
+                (GetLetterRow -Char "A" -Row 0 -Font $Font -AsByte) | Should -Be 14
             }
         }
     }
