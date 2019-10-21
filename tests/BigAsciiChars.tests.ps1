@@ -10,8 +10,6 @@ Get-Module -Name $ModuleName | Remove-Module -ErrorAction SilentlyContinue
 $ImportedModule = Import-Module -Name $ModuleMetaDataPath -Force -PassThru
 
 
-
-
 Describe "$ModuleName Manifest Testing" {
 
 
@@ -52,16 +50,19 @@ Describe "$ModuleName Manifest Testing" {
 # Public Functions
 Describe "Write-BigText" {
     
-    It "Write-BigText Should return the correct length for A" {
+    It "Should return the correct length for A" {
         (Write-BigText -Text "A").length | Should -Be 5
     }
 
-    It "Write-BigText Should throw with an empty string" {
+    It "Should throw with an empty string" {
         { Write-BigText -Text "" } | Should -Throw 
     }
 
-    It "Write-BigText Should throw with a null value" {
+    It "Should throw with a null value" {
         { Write-BigText -Text $null } | Should -Throw 
+    }
+    It "Contains only the requested input/output chars and newlines" {
+        Write-BigText -Text "Pester Testing" -OutChar "#" -EmptyChar "_" | Out-String | Should -Not -Match "[^_#\r\n]"
     }
 }
 
@@ -82,6 +83,14 @@ Describe "New-BAFont" {
     }
 }
 
+Describe "Write-ScrollText" {
+    It "Writes to screen with text input and exits" {
+        Write-ScrollText -Text "P" -Width 2 -FrameDelay 0 | Should -BeNullOrEmpty
+    }
+    It "Writes to screen with byte input and exits" {
+        Write-ScrollText -Bytes @(255) -Width 2 -FrameDelay 0 | Should -BeNullOrEmpty
+    }
+}
 
 
 # Private Functions

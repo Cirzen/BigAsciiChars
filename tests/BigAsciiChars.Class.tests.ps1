@@ -54,6 +54,15 @@ InModuleScope -ModuleName BigAsciiChars -ScriptBlock {
             [FontBase]::ColumnMaskCalc(5,5) | Should -Be 17318416
         }
     }
+    Describe 'FontBase-static_GetUnknownSymbol' {
+        It "Returns a known good value based on a 5x5 font" {
+            [FontBase]::GetUnknownSymbol(5,5) | Should -Be 16033071
+        }
+
+        It "Returns a known good value based on a 8x8 font" {
+            [FontBase]::GetUnknownSymbol(8,8) | Should -Be 0x7F4141414141417F
+        }
+    }
     Describe '[DefaultFont]-[Constructors]' {
         It "Should instantiate in under 200ms" {
             (Measure-Command {[DefaultFont]::new()}).TotalMilliseconds | Should -BeLessOrEqual 200
@@ -81,6 +90,11 @@ InModuleScope -ModuleName BigAsciiChars -ScriptBlock {
             It "Returns a charInfo object for a known good char" {
                 $Info = $Font.GetCharInfo("a")
                 $Info | Should -BeOfType ([CharInfo])
+            }
+            It "Returns an unknown character symbol for a known non-good char" {
+                $Info = $Font.GetCharInfo("é")
+                $Info.Value | Should -Be 16033071
+                $Info.Width | Should -Be ($Font.Width - 1)
             }
             It "Returns known good data for a known input char" {
                 $Info = $Font.GetCharInfo("a")
