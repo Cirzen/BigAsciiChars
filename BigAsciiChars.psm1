@@ -1114,7 +1114,16 @@ function New-BAFont
     #>
     [CmdletBinding()]
     param(
-#        [ArgumentCompleter({Get-AvailableFont})]
+        [ArgumentCompleter( {
+                param(
+                    $commandName,
+                    $parameterName,
+                    $wordToComplete,
+                    $commandAst,
+                    $fakeBoundParameters
+                )
+                (Get-BAAvailableFont).Where({$_ -like "$wordToComplete*"}) | ForEach-Object {$_}
+            })]
         [Parameter(Mandatory = $true)]
         [string]
         $Name
@@ -1122,6 +1131,3 @@ function New-BAFont
 
     New-Object -TypeName $Name
 }
-
-
-Register-ArgumentCompleter -CommandName New-BAFont -ParameterName Name -ScriptBlock {Get-BAAvailableFont}
