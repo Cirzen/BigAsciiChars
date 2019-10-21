@@ -1,48 +1,11 @@
 using namespace System.Collections.Generic
 <#
 
-####  #  ###    ###   ###   ### # #   ### #  #  ###  ###   ###
-#   # # #      #   # #     #    # #  #    #  # #   # #  # #
-####  # # ###  #####  ###  #    # #  #    #### ##### ###   ###
-#   # # #  #   #   #     # #    # #  #    #  # #   # # #      #
-####  # ####   #   #  ###   ### # #   ### #  # #   # #  #  ###
-
-
-
- Codes are formed as per the following:
- 4 most significant bits: ignored, set to 0
- 3 next most significant bits = width of the character (value left shifted 25 places)
- 25 remaining bits are subdivided into chunks of 5, each representing a row of character data, left to right
-
- X = Null
- W = Width
- 1 = Top row
- 2 = Row 2
- 3 = Row 3
- 4 = Row 4
- 5 = Row 5
-
- MSB                                  LSB
-         a bcde abcd  eabc deab cdea bcde
- XXXX WWW1 1111 2222  2333 3344 4445 5555
- 0000 0000 0000 0000  0000 0000 0000 0000
- 0000 0001 0000 1000  0100 0010 0001 0000
-
-This can be viewed on a grid as:
-  a,b,c,d,e
-  - - - - -
-1|
-2|
-3|
-4|
-5|
-
- When a width is less than 5, the most significant bits for each row are zero filled.
- That is, the character is shifted to the right of the 5x5 grid
-
-TODO: Incorporate the $Codes hashtable into a class derived from "ASCIIFont" or similar.
-This will enable multiple fonts all sharing a base class. Char width can be calculated automatically,
-allowing 8x8 fonts to take up all bits of an int64
+    ####  #  ###    ###   ###   ### # #   ### #  #  ###  ###   ###
+    #   # # #      #   # #     #    # #  #    #  # #   # #  # #
+    ####  # # ###  #####  ###  #    # #  #    #### ##### ###   ###
+    #   # # #  #   #   #     # #    # #  #    #  # #   # # #      #
+    ####  # ####   #   #  ###   ### # #   ### #  # #   # #  #  ###
 
 #>
 
@@ -647,12 +610,9 @@ function GetLetterColumn
 
             # Shift the mask to the first column as specified by the width value:
             $InitialShift = ($Font.Width - $Width)
-            Write-Debug "InitialShift: $InitialShift"
 
             $ColumnMask = $ColumnMask -shr $InitialShift
             
-            Write-Debug "ColumnMask: $ColumnMask"
-
             $SlideAmount = $Font.Width - 1
 
             # The amount to bump the bits to the right so that the first value is in the 2^0 position
@@ -728,6 +688,29 @@ function Write-BigText
 
 function Write-SpinText
 {
+    <#
+    .SYNOPSIS
+    Jokey function to show that changing the OutChar in quick succession can produce a slightly nauseating result
+    
+    .PARAMETER Text
+    The text to display
+    
+    .PARAMETER LoopCount
+    The number of times to loop the animation
+    
+    .PARAMETER FrameDelay
+    The desired delay between successive frames of animation (milliseconds)
+    
+    .PARAMETER Font
+    The font to use for the display
+    
+    .EXAMPLE
+    Write-SpinText "Right round baby right round"
+
+    .NOTES
+    Clears the screen before showing the animation
+    #>
+    
     param(
         [string]
         $Text,
@@ -763,7 +746,7 @@ function NewShiftRegister ([int]$Width, [byte[]]$Array)
 {
 <#
     .SYNOPSIS
-    Helper function to generate a Queue object to act as a shift register
+    Helper function to generate a Queue object to act as a shift register for the scrolling display
 
     .PARAMETER Width
     The width of the register / queue
@@ -797,6 +780,11 @@ function NewShiftRegister ([int]$Width, [byte[]]$Array)
 }
 function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5)
 {
+    <#
+    .SYNOPSIS
+    Converts a byte to an array of bool values.
+    #>
+    
     $BoolArray = [bool[]]::new($Bits)
     $StartBit = 1 -shl ($Bits - 1)
     for ($i = 0; $i -lt $Bits; $i++)
@@ -808,8 +796,7 @@ function ConvertByteToBoolArray ([byte]$Byte, [int]$Bits = 5)
 }
 
 # Two functions to get the Most and Least significant bits of an input number
-# The idea being that you could bitwise or all the rows of a character and use the difference 
-# between the MSB and LSB to automatically calculate the character width
+# Used for automatic character width detection
 function GetLSB ($d, [switch]$Position)
 {
     # Ensure $d is a number:
