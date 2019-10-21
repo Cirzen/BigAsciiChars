@@ -82,6 +82,10 @@ class FontBase
     
     [Dictionary[int, CharInfo]]Build([hashtable]$codes)
     {
+        if ($this.Height * $this.Width -gt 64)
+        {
+            throw [System.InvalidOperationException]::new("Font is too large to be represented by Int64")
+        }
         $Dictionary = [Dictionary[int, CharInfo]]::new()
         foreach ($key in $codes.Keys)
         {
