@@ -3,7 +3,7 @@
 
 # BigAsciiChars
 
-BigAsciiChars is a module that displays a given string as if it were on 5 x 5 grid of large pixels.
+BigAsciiChars is a module that displays a given string as if it were on a grid of large pixels.
 
 ## Installing
 
