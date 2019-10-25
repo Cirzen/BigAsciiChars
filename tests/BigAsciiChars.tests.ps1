@@ -83,12 +83,23 @@ Describe "New-BAFont" {
     }
 }
 
-Describe "Write-ScrollText" {
-    It "Writes to screen with text input and exits" {
-        Write-ScrollText -Text "P" -Width 2 -FrameDelay 0 | Should -BeNullOrEmpty
-    }
-    It "Writes to screen with byte input and exits" {
-        Write-ScrollText -Bytes @(255) -Width 2 -FrameDelay 0 | Should -BeNullOrEmpty
+# Mocks requiring scope amendment
+InModuleScope -ModuleName $ModuleName {
+    Describe "Write-ScrollText" {
+        Context "Mock Write-Host" {
+            Mock Write-Host -MockWith { [void]"" } -ModuleName $ModuleName
+            Mock Out-Host -MockWith { [void]"" } -ModuleName $ModuleName
+            It "Writes to screen with text input and exits" {
+                Write-ScrollText -Text "P" -Width 2 -FrameDelay 0 | Should -BeNullOrEmpty
+                Assert-MockCalled -CommandName Write-Host -Times 2
+                Assert-MockCalled -CommandName Out-Host -Times 6
+            }
+            It "Writes to screen with byte input and exits" {
+                Write-ScrollText -Bytes @(255) -Width 2 -FrameDelay 0 | Should -BeNullOrEmpty
+                Assert-MockCalled -CommandName Write-Host -Times 2
+                Assert-MockCalled -CommandName Out-Host -Times 2
+            }
+        }
     }
 }
 
